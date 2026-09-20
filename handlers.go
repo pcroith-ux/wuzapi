@@ -1509,7 +1509,12 @@ func (s *server) SendImage() http.HandlerFunc {
 			return
 		}
 
-		uploaded, err = clientManager.GetWhatsmeowClient(txtid).Upload(context.Background(), filedata, whatsmeow.MediaImage)
+		cli := clientManager.GetWhatsmeowClient(txtid)
+		if strings.HasSuffix(recipient.String(), "@newsletter") {
+			uploaded, err = cli.UploadNewsletter(context.Background(), filedata, whatsmeow.MediaImage)
+		} else {
+			uploaded, err = cli.Upload(context.Background(), filedata, whatsmeow.MediaImage)
+		}
 		if err != nil {
 			s.Respond(w, r, http.StatusInternalServerError, errors.New(fmt.Sprintf("failed to upload file: %v", err)))
 			return
@@ -1700,7 +1705,13 @@ func (s *server) SendSticker() http.HandlerFunc {
 			return
 		}
 
-		uploaded, err := clientManager.GetWhatsmeowClient(txtid).Upload(context.Background(), processedData, whatsmeow.MediaImage)
+		var uploaded whatsmeow.UploadResponse
+		cli := clientManager.GetWhatsmeowClient(txtid)
+		if strings.HasSuffix(recipient.String(), "@newsletter") {
+			uploaded, err = cli.UploadNewsletter(context.Background(), processedData, whatsmeow.MediaImage)
+		} else {
+			uploaded, err = cli.Upload(context.Background(), processedData, whatsmeow.MediaImage)
+		}
 		if err != nil {
 			s.Respond(w, r, http.StatusInternalServerError, errors.New(fmt.Sprintf("Failed to upload file: %v", err)))
 			return
@@ -1868,7 +1879,12 @@ func (s *server) SendVideo() http.HandlerFunc {
 			return
 		}
 
-		uploaded, err = clientManager.GetWhatsmeowClient(txtid).Upload(context.Background(), filedata, whatsmeow.MediaVideo)
+		cli := clientManager.GetWhatsmeowClient(txtid)
+		if strings.HasSuffix(recipient.String(), "@newsletter") {
+			uploaded, err = cli.UploadNewsletter(context.Background(), filedata, whatsmeow.MediaVideo)
+		} else {
+			uploaded, err = cli.Upload(context.Background(), filedata, whatsmeow.MediaVideo)
+		}
 		if err != nil {
 			s.Respond(w, r, http.StatusInternalServerError, errors.New(fmt.Sprintf("failed to upload file: %v", err)))
 			return
