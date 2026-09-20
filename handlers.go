@@ -1538,26 +1538,22 @@ func (s *server) SendImage() http.HandlerFunc {
 			return
 		}
 
-		imageMsg := &waE2E.ImageMessage{
+		msg := &waE2E.Message{ImageMessage: &waE2E.ImageMessage{
 			Caption:    proto.String(t.Caption),
 			URL:        proto.String(uploaded.URL),
 			DirectPath: proto.String(uploaded.DirectPath),
+			MediaKey:   uploaded.MediaKey,
 			Mimetype: proto.String(func() string {
 				if t.MimeType != "" {
 					return t.MimeType
 				}
 				return http.DetectContentType(filedata)
 			}()),
+			FileEncSHA256: uploaded.FileEncSHA256,
 			FileSHA256:    uploaded.FileSHA256,
 			FileLength:    proto.Uint64(uint64(len(filedata))),
 			JPEGThumbnail: thumbnailBytes,
-		}
-		if !isNewsletter {
-			imageMsg.MediaKey = uploaded.MediaKey
-			imageMsg.FileEncSHA256 = uploaded.FileEncSHA256
-		}
-
-		msg := &waE2E.Message{ImageMessage: imageMsg}
+		}}
 
 		if t.ContextInfo.StanzaID != nil {
 			var qm *waE2E.Message
@@ -1730,20 +1726,16 @@ func (s *server) SendSticker() http.HandlerFunc {
 			return
 		}
 
-		stickerMsg := &waE2E.StickerMessage{
-			URL:          proto.String(uploaded.URL),
-			DirectPath:   proto.String(uploaded.DirectPath),
-			Mimetype:     proto.String(detectedMimeType),
-			FileSHA256:   uploaded.FileSHA256,
-			FileLength:   proto.Uint64(uint64(len(processedData))),
-			PngThumbnail: t.PngThumbnail,
-		}
-		if !isNewsletter {
-			stickerMsg.MediaKey = uploaded.MediaKey
-			stickerMsg.FileEncSHA256 = uploaded.FileEncSHA256
-		}
-
-		msg := &waE2E.Message{StickerMessage: stickerMsg}
+		msg := &waE2E.Message{StickerMessage: &waE2E.StickerMessage{
+			URL:           proto.String(uploaded.URL),
+			DirectPath:    proto.String(uploaded.DirectPath),
+			MediaKey:      uploaded.MediaKey,
+			Mimetype:      proto.String(detectedMimeType),
+			FileEncSHA256: uploaded.FileEncSHA256,
+			FileSHA256:    uploaded.FileSHA256,
+			FileLength:    proto.Uint64(uint64(len(processedData))),
+			PngThumbnail:  t.PngThumbnail,
+		}}
 
 		if t.ContextInfo.StanzaID != nil {
 			var qm *waE2E.Message
@@ -1914,26 +1906,22 @@ func (s *server) SendVideo() http.HandlerFunc {
 			return
 		}
 
-		videoMsg := &waE2E.VideoMessage{
+		msg := &waE2E.Message{VideoMessage: &waE2E.VideoMessage{
 			Caption:    proto.String(t.Caption),
 			URL:        proto.String(uploaded.URL),
 			DirectPath: proto.String(uploaded.DirectPath),
+			MediaKey:   uploaded.MediaKey,
 			Mimetype: proto.String(func() string {
 				if t.MimeType != "" {
 					return t.MimeType
 				}
 				return http.DetectContentType(filedata)
 			}()),
+			FileEncSHA256: uploaded.FileEncSHA256,
 			FileSHA256:    uploaded.FileSHA256,
 			FileLength:    proto.Uint64(uint64(len(filedata))),
 			JPEGThumbnail: t.JPEGThumbnail,
-		}
-		if !isNewsletter {
-			videoMsg.MediaKey = uploaded.MediaKey
-			videoMsg.FileEncSHA256 = uploaded.FileEncSHA256
-		}
-
-		msg := &waE2E.Message{VideoMessage: videoMsg}
+		}}
 
 		if t.ContextInfo.StanzaID != nil {
 			var qm *waE2E.Message
