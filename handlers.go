@@ -1522,6 +1522,14 @@ func (s *server) SendImage() http.HandlerFunc {
 			return
 		}
 
+		log.Info().
+			Str("recipient", recipient.String()).
+			Str("handle", uploaded.Handle).
+			Str("direct_path", uploaded.DirectPath).
+			Str("url", uploaded.URL).
+			Int("mediakey_len", len(uploaded.MediaKey)).
+			Msg("DEBUG_NEWSLETTER_UPLOAD")
+
 		// decode jpeg into image.Image
 		reader := bytes.NewReader(filedata)
 		img, _, err := image.Decode(reader)
@@ -1538,18 +1546,33 @@ func (s *server) SendImage() http.HandlerFunc {
 			return
 		}
 
+		var mediaURL *string
+		var mediaKey []byte
+		var fileEncSHA []byte
+
+		if isNewsletter {
+			// Canais NÃO usam URL privada nem chaves de criptografia E2EE
+			mediaURL = nil
+			mediaKey = nil
+			fileEncSHA = nil
+		} else {
+			mediaURL = proto.String(uploaded.URL)
+			mediaKey = uploaded.MediaKey
+			fileEncSHA = uploaded.FileEncSHA256
+		}
+
 		msg := &waE2E.Message{ImageMessage: &waE2E.ImageMessage{
-			Caption:    proto.String(t.Caption),
-			URL:        proto.String(uploaded.URL),
-			DirectPath: proto.String(uploaded.DirectPath),
-			MediaKey:   uploaded.MediaKey,
+			Caption:       proto.String(t.Caption),
+			URL:           mediaURL,
+			DirectPath:    proto.String(uploaded.DirectPath),
+			MediaKey:      mediaKey,
 			Mimetype: proto.String(func() string {
 				if t.MimeType != "" {
 					return t.MimeType
 				}
 				return http.DetectContentType(filedata)
 			}()),
-			FileEncSHA256: uploaded.FileEncSHA256,
+			FileEncSHA256: fileEncSHA,
 			FileSHA256:    uploaded.FileSHA256,
 			FileLength:    proto.Uint64(uint64(len(filedata))),
 			JPEGThumbnail: thumbnailBytes,
@@ -1590,7 +1613,7 @@ func (s *server) SendImage() http.HandlerFunc {
 		}
 
 		sendExtra := whatsmeow.SendRequestExtra{ID: msgid}
-		if isNewsletter {
+		if isNewsletter && uploaded.Handle != "" {
 			sendExtra.MediaHandle = uploaded.Handle
 		}
 
